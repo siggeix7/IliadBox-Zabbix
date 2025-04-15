@@ -13,6 +13,54 @@ zabbix_export:
         - name: CED
         - name: IOT
       items:
+        - uuid: 65287fe1c6b541d6ab8d18d4f1ff08c2
+          name: 'Bandwidth Down'
+          type: DEPENDENT
+          key: bandwidth.down
+          trends: '0'
+          units: bit
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.bandwidth_down
+          master_item:
+            key: connection.status.js
+        - uuid: 4f1ec772d1984c899ee3a6af05397e19
+          name: 'Bandwidth Up'
+          type: DEPENDENT
+          key: bandwidth.up
+          trends: '0'
+          units: bit
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.bandwidth_up
+          master_item:
+            key: connection.status.js
+        - uuid: 209297e0c38245bcbd476b680b3ebe44
+          name: 'Bytes Down'
+          type: DEPENDENT
+          key: bytes.down
+          trends: '0'
+          units: bytes
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.bytes_down
+          master_item:
+            key: connection.status.js
+        - uuid: 112cb3f73a0d4da0b82d06e9e3af82e8
+          name: 'Bytes Up'
+          type: DEPENDENT
+          key: bytes.up
+          trends: '0'
+          units: bytes
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.bytes_up
+          master_item:
+            key: connection.status.js
         - uuid: a13fea430f6e48a183fb4fff9aac51f3
           name: 'Connection Config JS'
           type: DEPENDENT
@@ -184,6 +232,30 @@ zabbix_export:
                   
           master_item:
             key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: 11d42714a3dd473eb9dc057339ff4b3b
+          name: 'Rate Down'
+          type: DEPENDENT
+          key: rate.down
+          trends: '0'
+          units: bit
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.rate_down
+          master_item:
+            key: connection.status.js
+        - uuid: a66d157d13344059be567d9fae168fea
+          name: 'Rate Up'
+          type: DEPENDENT
+          key: rate.up
+          trends: '0'
+          units: bit
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.rate_up
+          master_item:
+            key: connection.status.js
         - uuid: 8e39b174b23e42168cd5c77a6157a162
           name: 'Session Token'
           type: EXTERNAL
@@ -199,6 +271,17 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           status: DISABLED
+        - uuid: c7ac2d009dba49dda24b5fc64aff7e77
+          name: 'Stato FTTH'
+          type: DEPENDENT
+          key: stato.ftth
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.state
+          master_item:
+            key: connection.status.js
         - uuid: 987e0412377d43b5b00a28b7e4bab4d9
           name: 'System JS'
           type: DEPENDENT
@@ -213,6 +296,74 @@ zabbix_export:
                   var freeboxip = '{$FREEBOXIP}';
                   
                   var urlapi = 'https://'+freeboxip+'/api/v8/system';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: 0ea5152a711b44d9bc90ec4c53e62f28
+          name: 'Temperatura A'
+          type: DEPENDENT
+          key: temperatura.a
+          trends: '0'
+          units: C°
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result.sensors.[0].value'
+          master_item:
+            key: system.js
+        - uuid: 0c976f860d28444a8049e54c6e5c29e6
+          name: 'Temperatura B'
+          type: DEPENDENT
+          key: temperatura.b
+          trends: '0'
+          units: C°
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result.sensors.[1].value'
+          master_item:
+            key: system.js
+        - uuid: c80d9bf4640d47b78f8b9b7845163f63
+          name: 'Velocità ventola'
+          type: DEPENDENT
+          key: velocita.ventola
+          trends: '0'
+          units: rpm
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result.fans.[0].value'
+          master_item:
+            key: system.js
+        - uuid: 472a0ebfc7bc42eca3b747fe50b0566e
+          name: 'WIFI diag JS'
+          type: DEPENDENT
+          key: wifi.diag.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v9/wifi/diag';
                   
                   
                   try {
