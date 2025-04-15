@@ -1,0 +1,239 @@
+zabbix_export:
+  version: '7.2'
+  template_groups:
+    - uuid: 6067a7bdc5ca40539c378a0b4895f981
+      name: CED
+    - uuid: 2a61a18fdbf941a2b971bcd9dfb4d54f
+      name: IOT
+  templates:
+    - uuid: c8e37dfa8dcf4010a0e8e1a3b9bc16eb
+      template: IliadBox
+      name: IliadBox
+      groups:
+        - name: CED
+        - name: IOT
+      items:
+        - uuid: a13fea430f6e48a183fb4fff9aac51f3
+          name: 'Connection Config JS'
+          type: DEPENDENT
+          key: connection.config.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v11/connection/config';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: dbdf6d0de86e4e4dbc5e7625bbc5a86c
+          name: 'Connection Status JS'
+          type: DEPENDENT
+          key: connection.status.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v11/connection';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: d608afac26d34fc085dce3576cf5e11e
+          name: 'Firmware Version'
+          type: DEPENDENT
+          key: firmware.version
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.firmware_version
+          master_item:
+            key: system.js
+        - uuid: b308370680004037aa5bdece184ecdab
+          name: 'Lan Browser JS'
+          type: DEPENDENT
+          key: lan.browser.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v8/lan/browser/pub/';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: 8ef0906c7b434db58d3f7c23ea99db3a
+          name: 'Lan Config JS'
+          type: DEPENDENT
+          key: lan.config.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v8/lan/config/';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: 59ed2619b34b4332a336d2f166b0549b
+          name: 'Lingua JS'
+          type: DEPENDENT
+          key: lingua.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v8/lang';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+        - uuid: 8e39b174b23e42168cd5c77a6157a162
+          name: 'Session Token'
+          type: EXTERNAL
+          key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+          delay: 5m
+          history: '0'
+          value_type: TEXT
+        - uuid: 66dcd65861d54733883c12c5fe38d0a9
+          name: 'Session Token test item'
+          type: EXTERNAL
+          key: 'session-token-test-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+          delay: 5m
+          history: '0'
+          value_type: TEXT
+          status: DISABLED
+        - uuid: 987e0412377d43b5b00a28b7e4bab4d9
+          name: 'System JS'
+          type: DEPENDENT
+          key: system.js
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  
+                  var freeboxip = '{$FREEBOXIP}';
+                  
+                  var urlapi = 'https://'+freeboxip+'/api/v8/system';
+                  
+                  
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, "Script failed to login into API and obtain data")
+                      return 1;
+                  }
+                  
+                  return JSON.stringify(apiresp);
+                  
+                  
+                  
+                  
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+      macros:
+        - macro: '{$APIVER}'
+          value: v8
+        - macro: '{$APPTOKEN}'
+        - macro: '{$APP_ID}'
+        - macro: '{$FREEBOXIP}'
