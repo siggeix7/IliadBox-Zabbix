@@ -65,6 +65,7 @@ zabbix_export:
           name: 'Connection Config JS'
           type: DEPENDENT
           key: connection.config.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -97,6 +98,7 @@ zabbix_export:
           name: 'Connection Status JS'
           type: DEPENDENT
           key: connection.status.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -136,10 +138,17 @@ zabbix_export:
                 - $.result.firmware_version
           master_item:
             key: system.js
+          triggers:
+            - uuid: 4becadcb1cdb4c648fb817f9d1995cbb
+              expression: 'last(/IliadBox/firmware.version,#1) <> last(/IliadBox/firmware.version,#2)'
+              name: 'Iliad Box Nuovo Firmware'
+              opdata: 'Nuova Versione del firmware: {ITEM.VALUE1}'
+              priority: INFO
         - uuid: b308370680004037aa5bdece184ecdab
           name: 'Lan Browser JS'
           type: DEPENDENT
           key: lan.browser.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -172,6 +181,7 @@ zabbix_export:
           name: 'Lan Config JS'
           type: DEPENDENT
           key: lan.config.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -204,6 +214,7 @@ zabbix_export:
           name: 'Lingua JS'
           type: DEPENDENT
           key: lingua.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -260,17 +271,9 @@ zabbix_export:
           name: 'Session Token'
           type: EXTERNAL
           key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
-          delay: 5m
+          delay: 30s
           history: '0'
           value_type: TEXT
-        - uuid: 66dcd65861d54733883c12c5fe38d0a9
-          name: 'Session Token test item'
-          type: EXTERNAL
-          key: 'session-token-test-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
-          delay: 5m
-          history: '0'
-          value_type: TEXT
-          status: DISABLED
         - uuid: c7ac2d009dba49dda24b5fc64aff7e77
           name: 'Stato FTTH'
           type: DEPENDENT
@@ -286,6 +289,7 @@ zabbix_export:
           name: 'System JS'
           type: DEPENDENT
           key: system.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
@@ -338,6 +342,25 @@ zabbix_export:
                 - '$.result.sensors.[1].value'
           master_item:
             key: system.js
+        - uuid: 275058fcbcac432a9dc662c825f79ec9
+          name: Uptime
+          type: DEPENDENT
+          key: uptime
+          trends: '0'
+          units: s
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.uptime_val
+          master_item:
+            key: system.js
+          triggers:
+            - uuid: 976ea228f5cd473093cfbfea562e88fa
+              expression: last(/IliadBox/uptime)<10m
+              name: 'Router: {HOST.NAME} has been restarted'
+              event_name: 'Router: {HOST.NAME} has been restarted (uptime < 10m)'
+              priority: WARNING
+              manual_close: 'YES'
         - uuid: c80d9bf4640d47b78f8b9b7845163f63
           name: 'Velocità ventola'
           type: DEPENDENT
@@ -354,6 +377,7 @@ zabbix_export:
           name: 'WIFI diag JS'
           type: DEPENDENT
           key: wifi.diag.js
+          history: '0'
           value_type: TEXT
           preprocessing:
             - type: JAVASCRIPT
