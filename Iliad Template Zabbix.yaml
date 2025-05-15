@@ -285,6 +285,12 @@ zabbix_export:
                 - $.result.state
           master_item:
             key: connection.status.js
+          triggers:
+            - uuid: 102d29520d084b52bb9a6c9d76a628a3
+              expression: 'last(/IliadBox/stato.ftth)<>"up"'
+              name: 'Iliad Box: FTTH è down'
+              priority: HIGH
+              manual_close: 'YES'
         - uuid: 987e0412377d43b5b00a28b7e4bab4d9
           name: 'System JS'
           type: DEPENDENT
