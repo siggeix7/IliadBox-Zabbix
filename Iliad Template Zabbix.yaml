@@ -17,8 +17,8 @@ zabbix_export:
           name: 'Bandwidth Down'
           type: DEPENDENT
           key: bandwidth.down
-          trends: '0'
-          units: bit
+          trends: 365d
+          units: bps
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -29,8 +29,8 @@ zabbix_export:
           name: 'Bandwidth Up'
           type: DEPENDENT
           key: bandwidth.up
-          trends: '0'
-          units: bit
+          trends: 365d
+          units: bps
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -41,8 +41,8 @@ zabbix_export:
           name: 'Bytes Down'
           type: DEPENDENT
           key: bytes.down
-          trends: '0'
-          units: bytes
+          trends: 365d
+          units: B
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -53,8 +53,8 @@ zabbix_export:
           name: 'Bytes Up'
           type: DEPENDENT
           key: bytes.up
-          trends: '0'
-          units: bytes
+          trends: 365d
+          units: B
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -75,7 +75,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v11/connection/config';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v11/connection/config';
                   
                   
                   try {
@@ -93,7 +93,91 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 0aa4c1697158403f9bf6450d223a6d90
+          name: 'Adblock abilitato'
+          type: DEPENDENT
+          key: connection.adblock
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.adblock
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
+        - uuid: 8d1297cae9e54d009e8620a144128381
+          name: 'API remote access abilitato'
+          type: DEPENDENT
+          key: connection.api_remote_access
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.api_remote_access
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
+          triggers:
+            - uuid: 5c08ec6e0a3b4be8b39ad7f5bce27111
+              expression: 'last(/IliadBox/connection.api_remote_access)=1'
+              name: 'Iliad Box: API remote access abilitato'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: f297e9d1526f4c9baabcb2a878d2493e
+          name: 'Richiesta nuovi token abilitata'
+          type: DEPENDENT
+          key: connection.allow_token_request
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.allow_token_request
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
+        - uuid: 5a90cf979fa94acba929fad1af704708
+          name: 'Accesso remoto HTTP abilitato'
+          type: DEPENDENT
+          key: connection.remote_access
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.remote_access
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
+          triggers:
+            - uuid: 021a953453874d45b068d5f1066b057f
+              expression: 'last(/IliadBox/connection.remote_access)=1'
+              name: 'Iliad Box: accesso remoto HTTP abilitato'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 5acb25011ca748c3bfcb9d8140af1889
+          name: 'Password amministratore sicura'
+          type: DEPENDENT
+          key: connection.secure_password
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.is_secure_pass
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
+          triggers:
+            - uuid: 2f048d926bbe47cd93475cc4be08362d
+              expression: 'last(/IliadBox/connection.secure_password)=0'
+              name: 'Iliad Box: password amministratore non considerata sicura'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 966e4321566d40138c132f27393c67a8
+          name: 'Risposta ping WAN abilitata'
+          type: DEPENDENT
+          key: connection.wan_ping
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.ping
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: connection.config.js
         - uuid: dbdf6d0de86e4e4dbc5e7625bbc5a86c
           name: 'Connection Status JS'
           type: DEPENDENT
@@ -108,7 +192,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v11/connection';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v11/connection';
                   
                   
                   try {
@@ -126,7 +210,29 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: de5348bd911a49ad9308f08d6f34d648
+          name: 'Connection Media'
+          type: DEPENDENT
+          key: connection.media
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.media
+          master_item:
+            key: connection.status.js
+        - uuid: b573f9e9a4eb4bf384958972dae43200
+          name: 'Connection Type'
+          type: DEPENDENT
+          key: connection.type
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.type
+          master_item:
+            key: connection.status.js
         - uuid: d608afac26d34fc085dce3576cf5e11e
           name: 'Firmware Version'
           type: DEPENDENT
@@ -144,6 +250,113 @@ zabbix_export:
               name: 'Iliad Box Nuovo Firmware'
               opdata: 'Nuova Versione del firmware: {ITEM.VALUE1}'
               priority: INFO
+        - uuid: b75d4ed75a464fac8fcbd28297db6c5a
+          name: 'FTTH Status JS'
+          type: DEPENDENT
+          key: ftth.status.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/connection/ftth/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain FTTH data: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: e33c449e3a1b4961984f39b17a772e4a
+          name: 'FTTH Link'
+          type: DEPENDENT
+          key: ftth.link
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.link
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: ftth.status.js
+          triggers:
+            - uuid: 1c018493271b48c59b1dc243612c9151
+              expression: 'last(/IliadBox/ftth.link)=0 and last(/IliadBox/connection.media)="ftth"'
+              name: 'Iliad Box: link FTTH non attivo'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: 0d52929fcabc4919acf6a0a22b8e8696
+          name: 'FTTH SFP presente'
+          type: DEPENDENT
+          key: ftth.sfp.present
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sfp_present
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: ftth.status.js
+          triggers:
+            - uuid: cdb505b44e8841b7b340890692bbb692
+              expression: 'last(/IliadBox/ftth.sfp.present)=0 and last(/IliadBox/connection.media)="ftth"'
+              name: 'Iliad Box: modulo SFP FTTH non presente'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: b1350af2a4d240c3b84eb5d49ab6c5a6
+          name: 'FTTH SFP segnale presente'
+          type: DEPENDENT
+          key: ftth.sfp.signal
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sfp_has_signal
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: ftth.status.js
+          triggers:
+            - uuid: 8f43ac1d3d82427abd5b60d61b74ca31
+              expression: 'last(/IliadBox/ftth.sfp.signal)=0 and last(/IliadBox/connection.media)="ftth"'
+              name: 'Iliad Box: segnale ottico FTTH assente'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: 825546304d5b4101ba945f85d3b4842e
+          name: 'FTTH potenza RX SFP'
+          type: DEPENDENT
+          key: ftth.sfp.pwr.rx
+          trends: 365d
+          units: dBm
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sfp_pwr_rx
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          master_item:
+            key: ftth.status.js
+        - uuid: cb530dd54c3d43f78bb0995811c3ba03
+          name: 'FTTH potenza TX SFP'
+          type: DEPENDENT
+          key: ftth.sfp.pwr.tx
+          trends: 365d
+          units: dBm
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sfp_pwr_tx
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          master_item:
+            key: ftth.status.js
         - uuid: b308370680004037aa5bdece184ecdab
           name: 'Lan Browser JS'
           type: DEPENDENT
@@ -158,7 +371,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v8/lan/browser/pub/';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/lan/browser/pub/';
                   
                   
                   try {
@@ -176,7 +389,60 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: cfc247282c234f4cb90309f30d3598dd
+          name: 'LAN host attivi'
+          type: DEPENDENT
+          key: lan.hosts.active
+          trends: 365d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value);
+                  var hosts = data.result || [];
+                  var count = 0;
+                  for (var i = 0; i < hosts.length; i++) {
+                      if (hosts[i].active === true) {
+                          count++;
+                      }
+                  }
+                  return count;
+          master_item:
+            key: lan.browser.js
+        - uuid: 22f8bd546625482a91f257a801a7d279
+          name: 'LAN host raggiungibili'
+          type: DEPENDENT
+          key: lan.hosts.reachable
+          trends: 365d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value);
+                  var hosts = data.result || [];
+                  var count = 0;
+                  for (var i = 0; i < hosts.length; i++) {
+                      if (hosts[i].reachable === true) {
+                          count++;
+                      }
+                  }
+                  return count;
+          master_item:
+            key: lan.browser.js
+        - uuid: a699c4a4a736464b98e5ac2564af5e47
+          name: 'LAN host totali'
+          type: DEPENDENT
+          key: lan.hosts.total
+          trends: 365d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value);
+                  return (data.result || []).length;
+          master_item:
+            key: lan.browser.js
         - uuid: 8ef0906c7b434db58d3f7c23ea99db3a
           name: 'Lan Config JS'
           type: DEPENDENT
@@ -191,7 +457,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v8/lan/config/';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/lan/config/';
                   
                   
                   try {
@@ -209,7 +475,7 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
         - uuid: 59ed2619b34b4332a336d2f166b0549b
           name: 'Lingua JS'
           type: DEPENDENT
@@ -224,7 +490,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v8/lang';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/lang';
                   
                   
                   try {
@@ -242,13 +508,13 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
         - uuid: 11d42714a3dd473eb9dc057339ff4b3b
           name: 'Rate Down'
           type: DEPENDENT
           key: rate.down
-          trends: '0'
-          units: bit
+          trends: 365d
+          units: Bps
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -259,8 +525,8 @@ zabbix_export:
           name: 'Rate Up'
           type: DEPENDENT
           key: rate.up
-          trends: '0'
-          units: bit
+          trends: 365d
+          units: Bps
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -270,7 +536,7 @@ zabbix_export:
         - uuid: 8e39b174b23e42168cd5c77a6157a162
           name: 'Session Token'
           type: EXTERNAL
-          key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+          key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
           delay: 30s
           history: '0'
           value_type: TEXT
@@ -305,7 +571,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v8/system';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/system';
                   
                   
                   try {
@@ -323,13 +589,47 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: a112ac273de1486db1966e52597fca36
+          name: 'Box autenticata sulla rete operatore'
+          type: DEPENDENT
+          key: system.box_authenticated
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.box_authenticated
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: system.js
+          triggers:
+            - uuid: 8d3340f1fd71418da9f97762ecb056d1
+              expression: 'last(/IliadBox/system.box_authenticated)=0'
+              name: 'Iliad Box: autenticazione rete operatore non completata'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: b16441807b0b49359a995ef20cdf9090
+          name: 'Stato disco interno'
+          type: DEPENDENT
+          key: system.disk_status
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.disk_status
+          master_item:
+            key: system.js
+          triggers:
+            - uuid: a0b85fdd5d7d4eb6ab395e5ef1ccf907
+              expression: 'last(/IliadBox/system.disk_status)="error"'
+              name: 'Iliad Box: errore disco interno'
+              priority: WARNING
+              manual_close: 'YES'
         - uuid: 0ea5152a711b44d9bc90ec4c53e62f28
           name: 'Temperatura A'
           type: DEPENDENT
           key: temperatura.a
-          trends: '0'
-          units: C°
+          trends: 365d
+          units: °C
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -340,8 +640,8 @@ zabbix_export:
           name: 'Temperatura B'
           type: DEPENDENT
           key: temperatura.b
-          trends: '0'
-          units: C°
+          trends: 365d
+          units: °C
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -352,7 +652,7 @@ zabbix_export:
           name: Uptime
           type: DEPENDENT
           key: uptime
-          trends: '0'
+          trends: 365d
           units: s
           preprocessing:
             - type: JSONPATH
@@ -371,7 +671,7 @@ zabbix_export:
           name: 'Velocità ventola'
           type: DEPENDENT
           key: velocita.ventola
-          trends: '0'
+          trends: 365d
           units: rpm
           preprocessing:
             - type: JSONPATH
@@ -393,7 +693,7 @@ zabbix_export:
                   
                   var freeboxip = '{$FREEBOXIP}';
                   
-                  var urlapi = 'https://'+freeboxip+'/api/v9/wifi/diag';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v9/wifi/diag';
                   
                   
                   try {
@@ -411,7 +711,708 @@ zabbix_export:
                   
                   
           master_item:
-            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID}]'
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 6988a9f9cfc8441ca1198367dba59060
+          name: 'WiFi Config JS'
+          type: DEPENDENT
+          key: wifi.config.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/wifi/config';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain WiFi config: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 9c6f232dc4454de684f8a028bdf03915
+          name: 'WiFi abilitato'
+          type: DEPENDENT
+          key: wifi.enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: wifi.config.js
+          triggers:
+            - uuid: 6b965a8e3e5e4554a89ebad31fb4243c
+              expression: 'last(/IliadBox/wifi.enabled)=0'
+              name: 'Iliad Box: Wi-Fi disabilitato'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 81e938e8d3d541a8adf1ad6a4bf425f7
+          name: 'WiFi MAC filter state'
+          type: DEPENDENT
+          key: wifi.mac_filter_state
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.mac_filter_state
+          master_item:
+            key: wifi.config.js
+        - uuid: 9fc27e3ab5de4036b0c6488f6f91e5ac
+          name: 'WiFi power saving'
+          type: DEPENDENT
+          key: wifi.power_saving
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.power_saving
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: wifi.config.js
+        - uuid: 402dca38fce3414d8161cb0a23d8868e
+          name: 'WiFi BSS JS'
+          type: DEPENDENT
+          key: wifi.bss.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/wifi/bss/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain WiFi BSS data: '+error);
+                      return 1;
+                  }
+
+                  if (apiresp.result && apiresp.result.length) {
+                      for (var i = 0; i < apiresp.result.length; i++) {
+                          if (apiresp.result[i].config) {
+                              delete apiresp.result[i].config.key;
+                          }
+                          if (apiresp.result[i].bss_params) {
+                              delete apiresp.result[i].bss_params.key;
+                          }
+                          if (apiresp.result[i].shared_bss_params) {
+                              delete apiresp.result[i].shared_bss_params.key;
+                          }
+                      }
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: fb7ac3843988480ea330c34099c1042b
+          name: 'Switch Status JS'
+          type: DEPENDENT
+          key: switch.status.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/switch/status/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain switch data: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 9e6e2c6bbabe434cb60b57ce199d6af1
+          name: 'DHCP Config JS'
+          type: DEPENDENT
+          key: dhcp.config.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/dhcp/config/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain DHCP config: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: d4803455579340afb8dc5e343721ca71
+          name: 'DHCP abilitato'
+          type: DEPENDENT
+          key: dhcp.enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: dhcp.config.js
+        - uuid: ae822ef7932044f19e586fc6b206296c
+          name: 'DHCP range start'
+          type: DEPENDENT
+          key: dhcp.range.start
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.ip_range_start
+          master_item:
+            key: dhcp.config.js
+        - uuid: 437c113c94c1452295de8ea25ba60bf0
+          name: 'DHCP range end'
+          type: DEPENDENT
+          key: dhcp.range.end
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.ip_range_end
+          master_item:
+            key: dhcp.config.js
+        - uuid: 35609f1c1d2a45ab9ff4d1d4ed144749
+          name: 'DHCP sticky assign'
+          type: DEPENDENT
+          key: dhcp.sticky_assign
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sticky_assign
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: dhcp.config.js
+        - uuid: 18a2de55f73b49e49f555dabc26c59ee
+          name: 'UPnP IGD Config JS'
+          type: DEPENDENT
+          key: upnpigd.config.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/upnpigd/config/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain UPnP IGD config: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 1e1bb0b8de264627a6081337157338fa
+          name: 'UPnP IGD abilitato'
+          type: DEPENDENT
+          key: upnpigd.enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: upnpigd.config.js
+          triggers:
+            - uuid: 3c5c51ed4ea84a598eaa49a11c84ba11
+              expression: 'last(/IliadBox/upnpigd.enabled)=1'
+              name: 'Iliad Box: UPnP IGD abilitato'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 13a0bcac62834c6db9f620f984f890fb
+          name: 'DMZ JS'
+          type: DEPENDENT
+          key: fw.dmz.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/fw/dmz/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain DMZ config: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: 35cc67e001464ec685c4e1626ba1f0c1
+          name: 'DMZ abilitata'
+          type: DEPENDENT
+          key: fw.dmz.enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: fw.dmz.js
+          triggers:
+            - uuid: 0169c02a43634aa090476e50ecd10447
+              expression: 'last(/IliadBox/fw.dmz.enabled)=1'
+              name: 'Iliad Box: DMZ abilitata'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 27160e62da144fb6ab2ccb91f10fb022
+          name: 'DMZ IP'
+          type: DEPENDENT
+          key: fw.dmz.ip
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.ip
+          master_item:
+            key: fw.dmz.js
+        - uuid: 250f10d8da094e41905bc182317e3318
+          name: 'Samba JS'
+          type: DEPENDENT
+          key: netshare.samba.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/netshare/samba';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain Samba config: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
+        - uuid: f77b31a07982432c820a17aad16202d5
+          name: 'Samba file sharing abilitato'
+          type: DEPENDENT
+          key: netshare.samba.file_share_enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.file_share_enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: netshare.samba.js
+          triggers:
+            - uuid: f59f2f70a3c24059b924f31093f31c3c
+              expression: 'last(/IliadBox/netshare.samba.file_share_enabled)=1'
+              name: 'Iliad Box: condivisione file Samba abilitata'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 73f81c63f9b64d58a3096a158ed9418b
+          name: 'Samba logon abilitato'
+          type: DEPENDENT
+          key: netshare.samba.logon_enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.logon_enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: netshare.samba.js
+        - uuid: fc1944436921419d88b40d11a59904b0
+          name: 'Samba SMBv2 abilitato'
+          type: DEPENDENT
+          key: netshare.samba.smbv2_enabled
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.smbv2_enabled
+            - type: BOOL_TO_DECIMAL
+          master_item:
+            key: netshare.samba.js
+      discovery_rules:
+        - uuid: f53706f864e946eca53873cb237cbb35
+          name: 'System sensors discovery'
+          type: DEPENDENT
+          key: system.sensors.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 74db8ca515d045998d6919c2d486a61c
+              name: 'Temperatura sensore {#SENSOR_NAME}'
+              type: DEPENDENT
+              key: 'system.sensor.temperature["{#SENSOR_ID}"]'
+              trends: 365d
+              units: °C
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var sensors = data.result ? data.result.sensors || [] : [];
+                      var id = '{#SENSOR_ID}';
+                      for (var i = 0; i < sensors.length; i++) {
+                          if (sensors[i].id === id) {
+                              return sensors[i].value;
+                          }
+                      }
+                      return null;
+              master_item:
+                key: system.js
+              trigger_prototypes:
+                - uuid: 2a0daed3cb954f1bb963a6d4e5686334
+                  expression: 'last(/IliadBox/system.sensor.temperature["{#SENSOR_ID}"])>{$TEMP_WARN}'
+                  name: 'Iliad Box: temperatura alta su {#SENSOR_NAME}'
+                  priority: WARNING
+                  manual_close: 'YES'
+                - uuid: f8a14557accf450b83652eb1c18e385b
+                  expression: 'last(/IliadBox/system.sensor.temperature["{#SENSOR_ID}"])>{$TEMP_HIGH}'
+                  name: 'Iliad Box: temperatura critica su {#SENSOR_NAME}'
+                  priority: HIGH
+                  manual_close: 'YES'
+          master_item:
+            key: system.js
+          lld_macro_paths:
+            - lld_macro: '{#SENSOR_ID}'
+              path: $.id
+            - lld_macro: '{#SENSOR_NAME}'
+              path: $.name
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.sensors
+        - uuid: 0e055d11b7714021a910b2420a194325
+          name: 'System fans discovery'
+          type: DEPENDENT
+          key: system.fans.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 817d97545a21410998eae541e5840779
+              name: 'Velocità {#FAN_NAME}'
+              type: DEPENDENT
+              key: 'system.fan.speed["{#FAN_ID}"]'
+              trends: 365d
+              units: rpm
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var fans = data.result ? data.result.fans || [] : [];
+                      var id = '{#FAN_ID}';
+                      for (var i = 0; i < fans.length; i++) {
+                          if (fans[i].id === id) {
+                              return fans[i].value;
+                          }
+                      }
+                      return null;
+              master_item:
+                key: system.js
+              trigger_prototypes:
+                - uuid: f30538bb14ee46a484e2fc016841b663
+                  expression: 'last(/IliadBox/system.fan.speed["{#FAN_ID}"])<{$FAN_SPEED_MIN} and last(/IliadBox/uptime)>10m'
+                  name: 'Iliad Box: velocità ventola bassa su {#FAN_NAME}'
+                  priority: WARNING
+                  manual_close: 'YES'
+          master_item:
+            key: system.js
+          lld_macro_paths:
+            - lld_macro: '{#FAN_ID}'
+              path: $.id
+            - lld_macro: '{#FAN_NAME}'
+              path: $.name
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result.fans
+        - uuid: 1d2fd8b7319145bda97beffe57ab4ee7
+          name: 'Switch ports discovery'
+          type: DEPENDENT
+          key: switch.ports.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 2367450e74e947d6b4797205fdc26af9
+              name: 'Switch {#PORT_NAME}: duplex'
+              type: DEPENDENT
+              key: 'switch.port.duplex["{#PORT_ID}"]'
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var ports = data.result || [];
+                      var id = '{#PORT_ID}';
+                      for (var i = 0; i < ports.length; i++) {
+                          if (String(ports[i].id) === id) {
+                              return ports[i].duplex;
+                          }
+                      }
+                      return '';
+              master_item:
+                key: switch.status.js
+            - uuid: 3cd04557a89849fc86d4318c291e9cc3
+              name: 'Switch {#PORT_NAME}: link'
+              type: DEPENDENT
+              key: 'switch.port.link["{#PORT_ID}"]'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var ports = data.result || [];
+                      var id = '{#PORT_ID}';
+                      for (var i = 0; i < ports.length; i++) {
+                          if (String(ports[i].id) === id) {
+                              return ports[i].link === 'up' ? 1 : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: switch.status.js
+            - uuid: 565284e6f30e4f54bd9fa2d82e9bd39f
+              name: 'Switch {#PORT_NAME}: MAC collegati'
+              type: DEPENDENT
+              key: 'switch.port.mac_count["{#PORT_ID}"]'
+              trends: 365d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var ports = data.result || [];
+                      var id = '{#PORT_ID}';
+                      for (var i = 0; i < ports.length; i++) {
+                          if (String(ports[i].id) === id) {
+                              return (ports[i].mac_list || []).length;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: switch.status.js
+            - uuid: f3dae35b5515405f9774bdc719c5174e
+              name: 'Switch {#PORT_NAME}: velocità link'
+              type: DEPENDENT
+              key: 'switch.port.speed["{#PORT_ID}"]'
+              trends: 365d
+              units: bps
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var ports = data.result || [];
+                      var id = '{#PORT_ID}';
+                      for (var i = 0; i < ports.length; i++) {
+                          if (String(ports[i].id) === id) {
+                              return parseInt(ports[i].speed, 10) * 1000000;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: switch.status.js
+          master_item:
+            key: switch.status.js
+          lld_macro_paths:
+            - lld_macro: '{#PORT_ID}'
+              path: $.id
+            - lld_macro: '{#PORT_NAME}'
+              path: $.name
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result
+        - uuid: 9f4d12df87f94f1884254888f15db766
+          name: 'WiFi BSS discovery'
+          type: DEPENDENT
+          key: wifi.bss.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 3f8357c697984e6ba599f96aea3804d8
+              name: 'WiFi BSS {#BSS_PHY}: client autorizzati'
+              type: DEPENDENT
+              key: 'wifi.bss.authorized_sta_count["{#BSS_ID}"]'
+              trends: 365d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].status ? bsss[i].status.authorized_sta_count : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: wifi.bss.js
+            - uuid: 08b4fd2d119c412d848293876656bc7a
+              name: 'WiFi BSS {#BSS_PHY}: cifratura'
+              type: DEPENDENT
+              key: 'wifi.bss.encryption["{#BSS_ID}"]'
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].config ? bsss[i].config.encryption : '';
+                          }
+                      }
+                      return '';
+              master_item:
+                key: wifi.bss.js
+            - uuid: ed91f35b22ff433583a66d2e7f22fa90
+              name: 'WiFi BSS {#BSS_PHY}: abilitato'
+              type: DEPENDENT
+              key: 'wifi.bss.enabled["{#BSS_ID}"]'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].config && bsss[i].config.enabled === true ? 1 : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: wifi.bss.js
+            - uuid: 9f98d8770e9b4c689a6edf462a7583f2
+              name: 'WiFi BSS {#BSS_PHY}: client associati'
+              type: DEPENDENT
+              key: 'wifi.bss.sta_count["{#BSS_ID}"]'
+              trends: 365d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].status ? bsss[i].status.sta_count : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: wifi.bss.js
+            - uuid: e45fd3e5cb3c43baaceed82fb9f05d5a
+              name: 'WiFi BSS {#BSS_PHY}: stato'
+              type: DEPENDENT
+              key: 'wifi.bss.state["{#BSS_ID}"]'
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].status ? bsss[i].status.state : '';
+                          }
+                      }
+                      return '';
+              master_item:
+                key: wifi.bss.js
+              trigger_prototypes:
+                - uuid: e969a7e7e7f948a9bbe5e969c0e59496
+                  expression: 'last(/IliadBox/wifi.bss.enabled["{#BSS_ID}"])=1 and last(/IliadBox/wifi.bss.state["{#BSS_ID}"])<>"active"'
+                  name: 'Iliad Box: BSS Wi-Fi {#BSS_PHY} non attivo'
+                  priority: WARNING
+                  manual_close: 'YES'
+            - uuid: 09e1235cf0144a748dcbb7518bc87f81
+              name: 'WiFi BSS {#BSS_PHY}: WPS abilitato'
+              type: DEPENDENT
+              key: 'wifi.bss.wps_enabled["{#BSS_ID}"]'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var bsss = data.result || [];
+                      var id = '{#BSS_ID}';
+                      for (var i = 0; i < bsss.length; i++) {
+                          if (bsss[i].id === id) {
+                              return bsss[i].config && bsss[i].config.wps_enabled === true ? 1 : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: wifi.bss.js
+              trigger_prototypes:
+                - uuid: 4b9a7a8512224c67b106086f5f7dea7e
+                  expression: 'last(/IliadBox/wifi.bss.wps_enabled["{#BSS_ID}"])=1'
+                  name: 'Iliad Box: WPS abilitato su BSS Wi-Fi {#BSS_PHY}'
+                  priority: INFO
+                  manual_close: 'YES'
+          master_item:
+            key: wifi.bss.js
+          lld_macro_paths:
+            - lld_macro: '{#BSS_ID}'
+              path: $.id
+            - lld_macro: '{#BSS_PHY}'
+              path: $.phy_id
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.result
       macros:
         - macro: '{$APIVER}'
           value: v8
@@ -425,3 +1426,15 @@ zabbix_export:
         - macro: '{$FREEBOXIP}'
           value: 192.168.1.254
           description: 'IP o hostname locale della IliadBox/Freebox, senza protocollo.'
+        - macro: '{$FREEBOX_PROTOCOL}'
+          value: http
+          description: 'Protocollo locale usato dagli item JavaScript. Usare https solo se il certificato Freebox e il trust store di Zabbix sono configurati.'
+        - macro: '{$TEMP_WARN}'
+          value: '70'
+          description: 'Soglia warning temperatura sensori in gradi Celsius.'
+        - macro: '{$TEMP_HIGH}'
+          value: '80'
+          description: 'Soglia high temperatura sensori in gradi Celsius.'
+        - macro: '{$FAN_SPEED_MIN}'
+          value: '500'
+          description: 'Velocita minima ventola in rpm, valutata dopo 10 minuti di uptime.'

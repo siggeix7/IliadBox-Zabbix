@@ -2,6 +2,16 @@
 
 Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 
+## Monitoraggio Incluso
+
+- WAN/FTTH: stato connessione, rate up/down, banda disponibile, traffico totale, tipo/media connessione.
+- FTTH/SFP: link fibra, presenza modulo SFP, segnale ottico, potenza RX/TX in dBm.
+- Sistema: firmware, uptime, autenticazione rete operatore, stato disco, temperature e ventole anche tramite discovery.
+- LAN: numero host totali, attivi e raggiungibili.
+- Switch: discovery porte Ethernet con link, velocita', duplex e numero MAC collegati.
+- Wi-Fi: stato globale, power saving, MAC filter, discovery BSS con stato, client associati/autorizzati, cifratura e WPS.
+- DHCP, UPnP IGD, DMZ e Samba: stato dei servizi e trigger informativi/di sicurezza.
+
 ## Contenuto
 
 - `Iliad Template Zabbix.yaml`: template Zabbix 7.2 da importare.
@@ -13,7 +23,7 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 - Zabbix 7.2 o compatibile con template export 7.2.
 - Python 3 sul server o proxy Zabbix che esegue gli external check.
 - `curl`, `jq` e `openssl` solo per lo script di generazione dell'app token.
-- Accesso HTTP dal server/proxy Zabbix verso la IliadBox/Freebox.
+- Accesso HTTP dal server/proxy Zabbix verso la IliadBox/Freebox. HTTPS e' supportato impostando `{$FREEBOX_PROTOCOL}=https`, ma richiede certificati Freebox attendibili per il server/proxy Zabbix.
 
 ## Generazione App Token
 
@@ -56,7 +66,7 @@ grep '^ExternalScripts=' /etc/zabbix/zabbix_server.conf
 Lo script non richiede pacchetti Python esterni. In caso di rete lenta si puo' aumentare il timeout con `ILIADBOX_TIMEOUT`, ad esempio:
 
 ```bash
-ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<APP_TOKEN>' 192.168.1.254 v8 zabbix.monitoring
+ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<APP_TOKEN>' 192.168.1.254 v8 zabbix.monitoring http
 ```
 
 ## Import Template
@@ -74,13 +84,26 @@ ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<
 | `{$APP_ID}` | `zabbix.monitoring` | Deve coincidere con l'App ID usato per generare l'app token. |
 | `{$APIVER}` | `v8` | Versione API usata per login e session token. |
 | `{$FREEBOXIP}` | `192.168.1.254` | IP o hostname locale del box, senza protocollo. |
+| `{$FREEBOX_PROTOCOL}` | `http` | Protocollo usato da external check e item JavaScript. Usare `https` solo se la CA Freebox e' trusted da Zabbix. |
+| `{$TEMP_WARN}` | `70` | Soglia warning temperatura sensori in gradi Celsius. |
+| `{$TEMP_HIGH}` | `80` | Soglia high temperatura sensori in gradi Celsius. |
+| `{$FAN_SPEED_MIN}` | `500` | Soglia minima ventola in rpm, valutata dopo 10 minuti di uptime. |
+
+## Trigger Principali
+
+- FTTH down, link fibra non attivo, SFP assente o senza segnale.
+- Router riavviato (`uptime < 10m`) e cambio firmware.
+- Box non autenticata sulla rete operatore o disco interno in errore.
+- Temperature sensori oltre soglia e ventola sotto soglia.
+- BSS Wi-Fi abilitato ma non attivo e WPS abilitato.
+- Accesso remoto HTTP/API, UPnP IGD, DMZ o Samba file sharing abilitati.
 
 ## Verifica Rapida
 
 Test manuale dello script external check:
 
 ```bash
-/usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<APP_TOKEN>' 192.168.1.254 v8 zabbix.monitoring
+/usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<APP_TOKEN>' 192.168.1.254 v8 zabbix.monitoring http
 ```
 
 Se il login riesce, il comando stampa solo il session token. Gli errori sono scritti su `stderr`, cosi' l'item Zabbix non riceve testo non valido al posto del token.
@@ -90,3 +113,5 @@ Se il login riesce, il comando stampa solo il session token. Gli errori sono scr
 - Non inserire app token o session token nel repository.
 - Preferire macro host di tipo secret per `{$APPTOKEN}`.
 - Limitare l'accesso agli external script ai soli utenti di sistema necessari.
+- Il master item `wifi.bss.js` rimuove le chiavi Wi-Fi (`key`) dalla risposta prima di restituire il JSON a Zabbix.
+- I master item JSON usano `history=0`; i dati storicizzati sono solo gli item dipendenti necessari al monitoraggio.

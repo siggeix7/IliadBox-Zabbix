@@ -26,13 +26,14 @@ def get_timeout():
 
 
 def parse_args(argv):
-    if len(argv) != 5:
+    if len(argv) not in (5, 6):
         fail(
             "Usage: session-token-iliadbox.py "
-            "<app_token> <freebox_ip> <api_version> <app_id>"
+            "<app_token> <freebox_ip> <api_version> <app_id> [http|https]"
         )
 
-    app_token, freebox_ip, api_version, app_id = argv[1:]
+    app_token, freebox_ip, api_version, app_id = argv[1:5]
+    protocol = argv[5] if len(argv) == 6 else os.environ.get("ILIADBOX_PROTOCOL", "http")
     missing = [
         name
         for name, value in (
@@ -40,13 +41,18 @@ def parse_args(argv):
             ("freebox_ip", freebox_ip),
             ("api_version", api_version),
             ("app_id", app_id),
+            ("protocol", protocol),
         )
         if not value
     ]
     if missing:
         fail("Missing required argument(s): " + ", ".join(missing))
 
-    return app_token, freebox_ip.strip().rstrip("/"), api_version.strip("/"), app_id
+    protocol = protocol.strip().rstrip(":/").lower()
+    if protocol not in ("http", "https"):
+        fail("protocol must be http or https")
+
+    return app_token, freebox_ip.strip().rstrip("/"), api_version.strip("/"), app_id, protocol
 
 
 def request_json(url, method="GET", payload=None, timeout=DEFAULT_TIMEOUT):
@@ -82,9 +88,9 @@ def result_value(data, key):
 
 
 def main(argv):
-    app_token, freebox_ip, api_version, app_id = parse_args(argv)
+    app_token, freebox_ip, api_version, app_id, protocol = parse_args(argv)
     timeout = get_timeout()
-    base_url = f"http://{freebox_ip}/api/{api_version}"
+    base_url = f"{protocol}://{freebox_ip}/api/{api_version}"
 
     try:
         login_data = request_json(f"{base_url}/login/", timeout=timeout)
