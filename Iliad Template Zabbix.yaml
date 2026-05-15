@@ -333,7 +333,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - '$.result.sensors.[0].value'
+                - '$.result.sensors[0].value'
           master_item:
             key: system.js
         - uuid: 0c976f860d28444a8049e54c6e5c29e6
@@ -345,7 +345,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - '$.result.sensors.[1].value'
+                - '$.result.sensors[1].value'
           master_item:
             key: system.js
         - uuid: 275058fcbcac432a9dc662c825f79ec9
@@ -376,7 +376,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - '$.result.fans.[0].value'
+                - '$.result.fans[0].value'
           master_item:
             key: system.js
         - uuid: 472a0ebfc7bc42eca3b747fe50b0566e
@@ -415,6 +415,13 @@ zabbix_export:
       macros:
         - macro: '{$APIVER}'
           value: v8
+          description: 'Versione API usata per generare il session token.'
         - macro: '{$APPTOKEN}'
+          type: SECRET_TEXT
+          description: 'App token generato con app-token-gen-and-session-token.sh.'
         - macro: '{$APP_ID}'
+          value: zabbix.monitoring
+          description: "App ID usato durante la generazione dell'app token."
         - macro: '{$FREEBOXIP}'
+          value: 192.168.1.254
+          description: 'IP o hostname locale della IliadBox/Freebox, senza protocollo.'

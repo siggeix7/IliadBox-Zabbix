@@ -1,84 +1,110 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-FREEBOX_IP="192.168.1.254"
-API_VER="v8"
-APP_ID="zabbix.moitoring"
-APP_NAME="Freebox Monitor Zabbix"
-APP_VERSION="1.0"
-DEVICE_NAME="ZABBIX"
+FREEBOX_IP="${FREEBOX_IP:-192.168.1.254}"
+API_VER="${API_VER:-v8}"
+APP_ID="${APP_ID:-zabbix.monitoring}"
+APP_NAME="${APP_NAME:-Freebox Monitor Zabbix}"
+APP_VERSION="${APP_VERSION:-1.0}"
+DEVICE_NAME="${DEVICE_NAME:-ZABBIX}"
+POLL_ATTEMPTS="${POLL_ATTEMPTS:-12}"
+POLL_INTERVAL="${POLL_INTERVAL:-5}"
 
-echo "[*] Registrazione app al Freebox..."
+BASE_URL="http://${FREEBOX_IP}/api/${API_VER}"
 
-AUTH_RESPONSE=$(curl -s -X POST http://$FREEBOX_IP/api/$API_VER/login/authorize/ \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"app_id\": \"$APP_ID\",
-    \"app_name\": \"$APP_NAME\",
-    \"app_version\": \"$APP_VERSION\",
-    \"device_name\": \"$DEVICE_NAME\"
-}")
-
-APP_TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.result.app_token')
-TRACK_ID=$(echo "$AUTH_RESPONSE" | jq -r '.result.track_id')
-
-if [ "$APP_TOKEN" == "null" ]; then
-    echo "[!] Errore durante la registrazione dell'app:"
-    echo "$AUTH_RESPONSE"
-    exit 1
-fi
-
-echo "[✅] App registrata. App token: $APP_TOKEN"
-echo "[🔁] Track ID: $TRACK_ID"
-
-# === STEP 2: Polling autorizzazione ===
-echo "[🕒] In attesa dell'autorizzazione sul box (60s max)..."
-for i in {1..12}; do
-  STATUS=$(curl -s http://$FREEBOX_IP/api/$API_VER/login/authorize/$TRACK_ID | jq -r '.result.status')
-  echo "  [${i}0s] Stato autorizzazione: $STATUS"
-  if [ "$STATUS" == "granted" ]; then
-    echo "[✅] Autorizzazione concessa!"
-    break
-  elif [ "$STATUS" == "denied" ]; then
-    echo "[❌] Autorizzazione negata sul box!"
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    printf 'ERROR: required command not found: %s\n' "$1" >&2
     exit 1
   fi
-  sleep 5
+}
+
+for command_name in curl jq openssl; do
+  require_command "$command_name"
 done
 
-if [ "$STATUS" != "granted" ]; then
-    echo "[!] Timeout: autorizzazione non ricevuta entro 60 secondi."
-    exit 1
+printf '[*] Registering app on IliadBox/Freebox at %s\n' "$FREEBOX_IP"
+
+AUTH_PAYLOAD=$(jq -n \
+  --arg app_id "$APP_ID" \
+  --arg app_name "$APP_NAME" \
+  --arg app_version "$APP_VERSION" \
+  --arg device_name "$DEVICE_NAME" \
+  '{app_id: $app_id, app_name: $app_name, app_version: $app_version, device_name: $device_name}')
+
+AUTH_RESPONSE=$(curl --fail --silent --show-error \
+  --request POST "${BASE_URL}/login/authorize/" \
+  --header "Content-Type: application/json" \
+  --data "$AUTH_PAYLOAD")
+
+if ! APP_TOKEN=$(printf '%s' "$AUTH_RESPONSE" | jq -er '.result.app_token'); then
+  printf 'ERROR: unable to register app:\n%s\n' "$AUTH_RESPONSE" >&2
+  exit 1
 fi
 
-# === STEP 3: Richiesta challenge ===
-echo "[*] Richiesta challenge..."
-CHALLENGE=$(curl -s http://$FREEBOX_IP/api/$API_VER/login/ | jq -r '.result.challenge')
-
-if [ -z "$CHALLENGE" ] || [ "$CHALLENGE" == "null" ]; then
-    echo "[!] Errore: challenge non ricevuto"
-    exit 1
+if ! TRACK_ID=$(printf '%s' "$AUTH_RESPONSE" | jq -er '.result.track_id'); then
+  printf 'ERROR: missing authorization track_id:\n%s\n' "$AUTH_RESPONSE" >&2
+  exit 1
 fi
 
-echo "[+] Challenge ricevuto: $CHALLENGE"
+printf '[+] App registered. App token: %s\n' "$APP_TOKEN"
+printf '[+] Track ID: %s\n' "$TRACK_ID"
 
-# === STEP 4: Calcolo HMAC ===
-PASSWORD=$(echo -n "$CHALLENGE" | openssl dgst -sha1 -hmac "$APP_TOKEN" | sed 's/^.*= //')
-echo "[+] HMAC calcolato: $PASSWORD"
+printf '[*] Waiting for authorization on the box (%ss max)...\n' "$((POLL_ATTEMPTS * POLL_INTERVAL))"
+STATUS=""
+for ((attempt = 1; attempt <= POLL_ATTEMPTS; attempt++)); do
+  AUTH_STATUS_RESPONSE=$(curl --fail --silent --show-error \
+    "${BASE_URL}/login/authorize/${TRACK_ID}")
+  STATUS=$(printf '%s' "$AUTH_STATUS_RESPONSE" | jq -r '.result.status // empty')
+  ELAPSED="$(((attempt - 1) * POLL_INTERVAL))"
 
-# === STEP 5: Login sessione ===
-echo "[*] Login in corso..."
-RESPONSE=$(curl -s -X POST http://$FREEBOX_IP/api/$API_VER/login/session/ \
-  -H "Content-Type: application/json" \
-  -d "{\"app_id\": \"$APP_ID\", \"password\": \"$PASSWORD\"}")
+  printf '  [%ss] Authorization status: %s\n' "$ELAPSED" "${STATUS:-unknown}"
+  case "$STATUS" in
+    granted)
+      printf '[+] Authorization granted.\n'
+      break
+      ;;
+    denied)
+      printf 'ERROR: authorization denied on the box.\n' >&2
+      exit 1
+      ;;
+  esac
 
-SUCCESS=$(echo "$RESPONSE" | jq -r '.success')
+  if ((attempt < POLL_ATTEMPTS)); then
+    sleep "$POLL_INTERVAL"
+  fi
+done
 
-if [ "$SUCCESS" == "true" ]; then
-    SESSION_TOKEN=$(echo "$RESPONSE" | jq -r '.result.session_token')
-    echo "[✅] Login riuscito!"
-    echo "[🔐] Session token:"
-    echo "$SESSION_TOKEN"
+if [[ "$STATUS" != "granted" ]]; then
+  printf 'ERROR: authorization not received within %s seconds.\n' "$((POLL_ATTEMPTS * POLL_INTERVAL))" >&2
+  exit 1
+fi
+
+printf '[*] Requesting challenge...\n'
+CHALLENGE_RESPONSE=$(curl --fail --silent --show-error "${BASE_URL}/login/")
+if ! CHALLENGE=$(printf '%s' "$CHALLENGE_RESPONSE" | jq -er '.result.challenge'); then
+  printf 'ERROR: challenge not found in response:\n%s\n' "$CHALLENGE_RESPONSE" >&2
+  exit 1
+fi
+
+PASSWORD=$(printf '%s' "$CHALLENGE" | openssl dgst -sha1 -hmac "$APP_TOKEN" | sed 's/^.*= //')
+
+printf '[*] Logging in...\n'
+LOGIN_PAYLOAD=$(jq -n \
+  --arg app_id "$APP_ID" \
+  --arg password "$PASSWORD" \
+  '{app_id: $app_id, password: $password}')
+
+RESPONSE=$(curl --fail --silent --show-error \
+  --request POST "${BASE_URL}/login/session/" \
+  --header "Content-Type: application/json" \
+  --data "$LOGIN_PAYLOAD")
+
+if printf '%s' "$RESPONSE" | jq -e '.success == true' >/dev/null; then
+  SESSION_TOKEN=$(printf '%s' "$RESPONSE" | jq -r '.result.session_token')
+  printf '[+] Login successful.\n'
+  printf '[+] Session token:\n%s\n' "$SESSION_TOKEN"
 else
-    echo "[❌] Login fallito:"
-    echo "$RESPONSE"
+  printf 'ERROR: login failed:\n%s\n' "$RESPONSE" >&2
+  exit 1
 fi

@@ -1,57 +1,121 @@
-#!/usr/bin/python3
-import sys
-import requests
+#!/usr/bin/env python3
 import hashlib
 import hmac
 import json
+import os
+import socket
+import sys
+import urllib.error
+import urllib.request
 
-# === CHECK ARGOMENTI ===
-if len(sys.argv) < 2:
-    print("[❌] Nessun argomento fornito")
+
+DEFAULT_TIMEOUT = 10.0
+
+
+def fail(message):
+    print(f"ERROR: {message}", file=sys.stderr)
     sys.exit(1)
 
-APP_TOKEN = sys.argv[1]
-FREEBOX_IP = sys.argv[2]
-API_VER = sys.argv[3]
-APP_ID = sys.argv[4]
 
-# === RICHIESTA CHALLENGE ===
-try:
-    response = requests.get(f"http://{FREEBOX_IP}/api/{API_VER}/login/")
-    challenge = response.json().get("result", {}).get("challenge")
-    if not challenge:
-        raise ValueError("Challenge non ricevuto o nullo.")
-except Exception as e:
-    print(f"[❌] Errore nella richiesta del challenge: {e}")
-    sys.exit(1)
+def get_timeout():
+    raw_value = os.environ.get("ILIADBOX_TIMEOUT", str(DEFAULT_TIMEOUT))
+    try:
+        return float(raw_value)
+    except ValueError:
+        fail("ILIADBOX_TIMEOUT must be a number")
 
-# === CALCOLO HMAC ===
-try:
-    digest = hmac.new(APP_TOKEN.encode(), challenge.encode(), hashlib.sha1).hexdigest()
-except Exception as e:
-    print(f"[❌] Errore nel calcolo dell'HMAC: {e}")
-    sys.exit(1)
 
-# === LOGIN ===
-try:
-    url_login = f"http://{FREEBOX_IP}/api/{API_VER}/login/session/"
-    payload = {
-        "app_id": APP_ID,
-        "password": digest
-    }
-    response = requests.post(url_login, headers={"Content-Type": "application/json"}, data=json.dumps(payload))
-    data = response.json()
-    if data.get("success") == True:
-        session_token = data.get("result", {}).get("session_token")
-        if session_token:
-            print(session_token)
-            sys.exit(0)
-        else:
-            raise ValueError("Session token non presente nella risposta.")
-    else:
-        print("[❌] Login fallito:")
-        print(json.dumps(data, indent=2))
-        sys.exit(1)
-except Exception as e:
-    print(f"[❌] Errore nella richiesta di login: {e}")
-    sys.exit(1)
+def parse_args(argv):
+    if len(argv) != 5:
+        fail(
+            "Usage: session-token-iliadbox.py "
+            "<app_token> <freebox_ip> <api_version> <app_id>"
+        )
+
+    app_token, freebox_ip, api_version, app_id = argv[1:]
+    missing = [
+        name
+        for name, value in (
+            ("app_token", app_token),
+            ("freebox_ip", freebox_ip),
+            ("api_version", api_version),
+            ("app_id", app_id),
+        )
+        if not value
+    ]
+    if missing:
+        fail("Missing required argument(s): " + ", ".join(missing))
+
+    return app_token, freebox_ip.strip().rstrip("/"), api_version.strip("/"), app_id
+
+
+def request_json(url, method="GET", payload=None, timeout=DEFAULT_TIMEOUT):
+    data = None
+    headers = {"Accept": "application/json"}
+    if payload is not None:
+        data = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+
+    request = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            body = response.read().decode("utf-8")
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"HTTP {error.code} from {url}: {detail}") from error
+    except urllib.error.URLError as error:
+        raise RuntimeError(f"Cannot reach {url}: {error.reason}") from error
+    except socket.timeout as error:
+        raise RuntimeError(f"Timeout connecting to {url}") from error
+
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"Invalid JSON from {url}: {error}") from error
+
+
+def result_value(data, key):
+    result = data.get("result")
+    if not isinstance(result, dict):
+        return None
+    return result.get(key)
+
+
+def main(argv):
+    app_token, freebox_ip, api_version, app_id = parse_args(argv)
+    timeout = get_timeout()
+    base_url = f"http://{freebox_ip}/api/{api_version}"
+
+    try:
+        login_data = request_json(f"{base_url}/login/", timeout=timeout)
+        challenge = result_value(login_data, "challenge")
+        if not challenge:
+            fail("Challenge not found in login response")
+
+        digest = hmac.new(
+            app_token.encode("utf-8"),
+            challenge.encode("utf-8"),
+            hashlib.sha1,
+        ).hexdigest()
+
+        session_data = request_json(
+            f"{base_url}/login/session/",
+            method="POST",
+            payload={"app_id": app_id, "password": digest},
+            timeout=timeout,
+        )
+    except RuntimeError as error:
+        fail(str(error))
+
+    if session_data.get("success") is not True:
+        fail("Login failed: " + json.dumps(session_data, ensure_ascii=False))
+
+    session_token = result_value(session_data, "session_token")
+    if not session_token:
+        fail("Session token not found in login response")
+
+    print(session_token)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
