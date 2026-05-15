@@ -95,8 +95,6 @@ ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<
 - Router riavviato (`uptime < 10m`) e cambio firmware.
 - Box non autenticata sulla rete operatore o disco interno in errore.
 - Temperature sensori oltre soglia e ventola sotto soglia.
-- BSS Wi-Fi abilitato ma non attivo e WPS abilitato.
-- Accesso remoto HTTP/API, UPnP IGD, DMZ o Samba file sharing abilitati.
 
 ## Verifica Rapida
 

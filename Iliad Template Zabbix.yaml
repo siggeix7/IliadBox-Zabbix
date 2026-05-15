@@ -116,12 +116,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: connection.config.js
-          triggers:
-            - uuid: 5c08ec6e0a3b4be8b39ad7f5bce27111
-              expression: 'last(/IliadBox/connection.api_remote_access)=1'
-              name: 'Iliad Box: API remote access abilitato'
-              priority: INFO
-              manual_close: 'YES'
         - uuid: f297e9d1526f4c9baabcb2a878d2493e
           name: 'Richiesta nuovi token abilitata'
           type: DEPENDENT
@@ -144,12 +138,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: connection.config.js
-          triggers:
-            - uuid: 021a953453874d45b068d5f1066b057f
-              expression: 'last(/IliadBox/connection.remote_access)=1'
-              name: 'Iliad Box: accesso remoto HTTP abilitato'
-              priority: INFO
-              manual_close: 'YES'
         - uuid: 5acb25011ca748c3bfcb9d8140af1889
           name: 'Password amministratore sicura'
           type: DEPENDENT
@@ -161,12 +149,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: connection.config.js
-          triggers:
-            - uuid: 2f048d926bbe47cd93475cc4be08362d
-              expression: 'last(/IliadBox/connection.secure_password)=0'
-              name: 'Iliad Box: password amministratore non considerata sicura'
-              priority: WARNING
-              manual_close: 'YES'
         - uuid: 966e4321566d40138c132f27393c67a8
           name: 'Risposta ping WAN abilitata'
           type: DEPENDENT
@@ -331,6 +313,7 @@ zabbix_export:
           name: 'FTTH potenza RX SFP'
           type: DEPENDENT
           key: ftth.sfp.pwr.rx
+          value_type: FLOAT
           trends: 365d
           units: dBm
           preprocessing:
@@ -346,6 +329,7 @@ zabbix_export:
           name: 'FTTH potenza TX SFP'
           type: DEPENDENT
           key: ftth.sfp.pwr.tx
+          value_type: FLOAT
           trends: 365d
           units: dBm
           preprocessing:
@@ -749,12 +733,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: wifi.config.js
-          triggers:
-            - uuid: 6b965a8e3e5e4554a89ebad31fb4243c
-              expression: 'last(/IliadBox/wifi.enabled)=0'
-              name: 'Iliad Box: Wi-Fi disabilitato'
-              priority: INFO
-              manual_close: 'YES'
         - uuid: 81e938e8d3d541a8adf1ad6a4bf425f7
           name: 'WiFi MAC filter state'
           type: DEPENDENT
@@ -950,12 +928,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: upnpigd.config.js
-          triggers:
-            - uuid: 3c5c51ed4ea84a598eaa49a11c84ba11
-              expression: 'last(/IliadBox/upnpigd.enabled)=1'
-              name: 'Iliad Box: UPnP IGD abilitato'
-              priority: INFO
-              manual_close: 'YES'
         - uuid: 13a0bcac62834c6db9f620f984f890fb
           name: 'DMZ JS'
           type: DEPENDENT
@@ -993,12 +965,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: fw.dmz.js
-          triggers:
-            - uuid: 0169c02a43634aa090476e50ecd10447
-              expression: 'last(/IliadBox/fw.dmz.enabled)=1'
-              name: 'Iliad Box: DMZ abilitata'
-              priority: WARNING
-              manual_close: 'YES'
         - uuid: 27160e62da144fb6ab2ccb91f10fb022
           name: 'DMZ IP'
           type: DEPENDENT
@@ -1047,12 +1013,6 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: netshare.samba.js
-          triggers:
-            - uuid: f59f2f70a3c24059b924f31093f31c3c
-              expression: 'last(/IliadBox/netshare.samba.file_share_enabled)=1'
-              name: 'Iliad Box: condivisione file Samba abilitata'
-              priority: INFO
-              manual_close: 'YES'
         - uuid: 73f81c63f9b64d58a3096a158ed9418b
           name: 'Samba logon abilitato'
           type: DEPENDENT
@@ -1371,12 +1331,6 @@ zabbix_export:
                       return '';
               master_item:
                 key: wifi.bss.js
-              trigger_prototypes:
-                - uuid: e969a7e7e7f948a9bbe5e969c0e59496
-                  expression: 'last(/IliadBox/wifi.bss.enabled["{#BSS_ID}"])=1 and last(/IliadBox/wifi.bss.state["{#BSS_ID}"])<>"active"'
-                  name: 'Iliad Box: BSS Wi-Fi {#BSS_PHY} non attivo'
-                  priority: WARNING
-                  manual_close: 'YES'
             - uuid: 09e1235cf0144a748dcbb7518bc87f81
               name: 'WiFi BSS {#BSS_PHY}: WPS abilitato'
               type: DEPENDENT
@@ -1396,12 +1350,6 @@ zabbix_export:
                       return 0;
               master_item:
                 key: wifi.bss.js
-              trigger_prototypes:
-                - uuid: 4b9a7a8512224c67b106086f5f7dea7e
-                  expression: 'last(/IliadBox/wifi.bss.wps_enabled["{#BSS_ID}"])=1'
-                  name: 'Iliad Box: WPS abilitato su BSS Wi-Fi {#BSS_PHY}'
-                  priority: INFO
-                  manual_close: 'YES'
           master_item:
             key: wifi.bss.js
           lld_macro_paths:
