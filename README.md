@@ -11,6 +11,7 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 - Switch: discovery porte Ethernet con link, velocita', duplex e numero MAC collegati.
 - Wi-Fi: stato globale, power saving, MAC filter, discovery BSS con stato, client associati/autorizzati, cifratura e WPS.
 - DHCP, UPnP IGD, DMZ e Samba: stato dei servizi e trigger informativi/di sicurezza.
+- Dashboard e grafici: overview con pagine Connessione, Sistema e Rete locale, piu' graph prototype per sensori, ventole, porte switch e BSS Wi-Fi.
 
 ## Contenuto
 
@@ -75,6 +76,12 @@ ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<
 2. Creare o selezionare l'host della IliadBox/Freebox.
 3. Associare il template `IliadBox` all'host.
 4. Configurare le macro sull'host, se diverse dai default.
+
+## Dashboard E Grafici
+
+- Dashboard template `IliadBox Overview` con le pagine `Connessione`, `Sistema` e `Rete locale`.
+- Grafici classici per traffico WAN, banda disponibile, traffico totale, potenza SFP FTTH, temperature, ventola e host LAN.
+- Graph prototype per temperature sensori, velocita ventole, stato porte switch e client BSS Wi-Fi generati dalle discovery rule.
 
 ## Macro
 

@@ -1074,6 +1074,14 @@ zabbix_export:
                   name: 'Iliad Box: temperatura critica su {#SENSOR_NAME}'
                   priority: HIGH
                   manual_close: 'YES'
+          graph_prototypes:
+            - uuid: 1b70e9c7f56f4018bde2e53b0b230066
+              name: 'Sensore {#SENSOR_NAME}: temperatura'
+              graph_items:
+                - color: 199C0D
+                  item:
+                    host: IliadBox
+                    key: 'system.sensor.temperature["{#SENSOR_ID}"]'
           master_item:
             key: system.js
           lld_macro_paths:
@@ -1118,6 +1126,14 @@ zabbix_export:
                   name: 'Iliad Box: velocità ventola bassa su {#FAN_NAME}'
                   priority: WARNING
                   manual_close: 'YES'
+          graph_prototypes:
+            - uuid: 00afddf1f42b442bac22cb10fa08e0cd
+              name: 'Ventola {#FAN_NAME}: velocita'
+              graph_items:
+                - color: 199C0D
+                  item:
+                    host: IliadBox
+                    key: 'system.fan.speed["{#FAN_ID}"]'
           master_item:
             key: system.js
           lld_macro_paths:
@@ -1215,6 +1231,26 @@ zabbix_export:
                       return 0;
               master_item:
                 key: switch.status.js
+          graph_prototypes:
+            - uuid: 039e797bd3ca40f79537dac89fbaaa6f
+              name: 'Switch {#PORT_NAME}: stato porta'
+              graph_items:
+                - color: 199C0D
+                  item:
+                    host: IliadBox
+                    key: 'switch.port.speed["{#PORT_ID}"]'
+                - sortorder: '1'
+                  color: F63100
+                  yaxisside: RIGHT
+                  item:
+                    host: IliadBox
+                    key: 'switch.port.mac_count["{#PORT_ID}"]'
+                - sortorder: '2'
+                  color: 00611C
+                  yaxisside: RIGHT
+                  item:
+                    host: IliadBox
+                    key: 'switch.port.link["{#PORT_ID}"]'
           master_item:
             key: switch.status.js
           lld_macro_paths:
@@ -1350,6 +1386,19 @@ zabbix_export:
                       return 0;
               master_item:
                 key: wifi.bss.js
+          graph_prototypes:
+            - uuid: 64cfbeed5c904dc0a7a9f09d58759577
+              name: 'WiFi BSS {#BSS_PHY}: client'
+              graph_items:
+                - color: 199C0D
+                  item:
+                    host: IliadBox
+                    key: 'wifi.bss.sta_count["{#BSS_ID}"]'
+                - sortorder: '1'
+                  color: F63100
+                  item:
+                    host: IliadBox
+                    key: 'wifi.bss.authorized_sta_count["{#BSS_ID}"]'
           master_item:
             key: wifi.bss.js
           lld_macro_paths:
@@ -1386,3 +1435,256 @@ zabbix_export:
         - macro: '{$FAN_SPEED_MIN}'
           value: '500'
           description: 'Velocita minima ventola in rpm, valutata dopo 10 minuti di uptime.'
+      dashboards:
+        - uuid: 57644c932d3547c7949e146a5258a138
+          name: 'IliadBox Overview'
+          pages:
+            - name: Connessione
+              widgets:
+                - type: graph
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: traffico WAN'
+                    - type: STRING
+                      name: reference
+                      value: AAAAA
+                - type: graph
+                  x: '36'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: banda disponibile WAN'
+                    - type: STRING
+                      name: reference
+                      value: AAAAB
+                - type: graph
+                  'y': '5'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: traffico totale'
+                    - type: STRING
+                      name: reference
+                      value: AAAAC
+                - type: graph
+                  x: '36'
+                  'y': '5'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: potenza SFP FTTH'
+                    - type: STRING
+                      name: reference
+                      value: AAAAD
+            - name: Sistema
+              widgets:
+                - type: graph
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: temperature'
+                    - type: STRING
+                      name: reference
+                      value: AAAAE
+                - type: graph
+                  x: '36'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: ventola'
+                    - type: STRING
+                      name: reference
+                      value: AAAAF
+                - type: graphprototype
+                  'y': '5'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '2'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'Sensore {#SENSOR_NAME}: temperatura'
+                    - type: STRING
+                      name: reference
+                      value: AAAAG
+                - type: graphprototype
+                  x: '36'
+                  'y': '5'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '2'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'Ventola {#FAN_NAME}: velocita'
+                    - type: STRING
+                      name: reference
+                      value: AAAAH
+            - name: 'Rete locale'
+              widgets:
+                - type: graph
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'IliadBox: host LAN'
+                    - type: STRING
+                      name: reference
+                      value: AAAAI
+                - type: graphprototype
+                  x: '36'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '2'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'Switch {#PORT_NAME}: stato porta'
+                    - type: STRING
+                      name: reference
+                      value: AAAAJ
+                - type: graphprototype
+                  'y': '5'
+                  width: '72'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '2'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: IliadBox
+                        name: 'WiFi BSS {#BSS_PHY}: client'
+                    - type: STRING
+                      name: reference
+                      value: AAAAK
+  graphs:
+    - uuid: a9a290fb5c3b46b599b1adafbf6c3348
+      name: 'IliadBox: traffico WAN'
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 199C0D
+          item:
+            host: IliadBox
+            key: rate.down
+        - sortorder: '1'
+          drawtype: BOLD_LINE
+          color: F63100
+          item:
+            host: IliadBox
+            key: rate.up
+    - uuid: f18d6c28f11d4946ab0867c86778b284
+      name: 'IliadBox: banda disponibile WAN'
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 199C0D
+          item:
+            host: IliadBox
+            key: bandwidth.down
+        - sortorder: '1'
+          drawtype: BOLD_LINE
+          color: F63100
+          item:
+            host: IliadBox
+            key: bandwidth.up
+    - uuid: 5a1b810691bf4b82b87a838d682aee15
+      name: 'IliadBox: traffico totale'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: IliadBox
+            key: bytes.down
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: IliadBox
+            key: bytes.up
+    - uuid: 63a363fd60a64368b7e8f41868c9819c
+      name: 'IliadBox: potenza SFP FTTH'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: IliadBox
+            key: ftth.sfp.pwr.rx
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: IliadBox
+            key: ftth.sfp.pwr.tx
+    - uuid: 8f259777be264a638a85f1f8089873bc
+      name: 'IliadBox: temperature'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: IliadBox
+            key: temperatura.a
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: IliadBox
+            key: temperatura.b
+    - uuid: 7160bb75d5e74601a8e6caaad946e916
+      name: 'IliadBox: ventola'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: IliadBox
+            key: velocita.ventola
+    - uuid: f0f1c12bf1ad46449d6f87dba0049611
+      name: 'IliadBox: host LAN'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: IliadBox
+            key: lan.hosts.total
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: IliadBox
+            key: lan.hosts.active
+        - sortorder: '2'
+          color: 00611C
+          item:
+            host: IliadBox
+            key: lan.hosts.reachable
