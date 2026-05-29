@@ -928,6 +928,32 @@ zabbix_export:
             - type: BOOL_TO_DECIMAL
           master_item:
             key: upnpigd.config.js
+        - uuid: 59634881f0f54141b9925a5cc81128bb
+          name: 'Port Forwarding JS'
+          type: DEPENDENT
+          key: fw.redir.js
+          history: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  sessiontoken = value;
+                  var freeboxip = '{$FREEBOXIP}';
+                  var urlapi = '{$FREEBOX_PROTOCOL}://'+freeboxip+'/api/v8/fw/redir/';
+
+                  try {
+                      req = new HttpRequest();
+                      req.addHeader('X-Fbx-App-Auth: '+sessiontoken);
+                      apiresp = JSON.parse(req.get(urlapi));
+                  } catch (error) {
+                      Zabbix.Log(3, 'Script failed to obtain port forwarding rules: '+error);
+                      return 1;
+                  }
+
+                  return JSON.stringify(apiresp);
+          master_item:
+            key: 'session-token-iliadbox.py[{$APPTOKEN},{$FREEBOXIP},{$APIVER},{$APP_ID},{$FREEBOX_PROTOCOL}]'
         - uuid: 13a0bcac62834c6db9f620f984f890fb
           name: 'DMZ JS'
           type: DEPENDENT
@@ -1145,6 +1171,112 @@ zabbix_export:
             - type: JSONPATH
               parameters:
                 - $.result.fans
+        - uuid: e9b4b68e54d448f78ab3994dd6b32a77
+          name: 'Port forwarding discovery'
+          type: DEPENDENT
+          key: fw.redir.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: bb591edbb9fc474b9478716f6618873f
+              name: 'Port forwarding {#FWREDIR_NAME}: abilitato'
+              type: DEPENDENT
+              key: 'fw.redir.enabled["{#FWREDIR_ID}"]'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var rules = data.result || [];
+                      var id = '{#FWREDIR_ID}';
+                      for (var i = 0; i < rules.length; i++) {
+                          if (String(rules[i].id) === id) {
+                              return rules[i].enabled === true ? 1 : 0;
+                          }
+                      }
+                      return 0;
+              master_item:
+                key: fw.redir.js
+          master_item:
+            key: fw.redir.js
+          lld_macro_paths:
+            - lld_macro: '{#FWREDIR_ID}'
+              path: $.id
+            - lld_macro: '{#FWREDIR_NAME}'
+              path: $.name
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value);
+                  var rules = data.result || [];
+                  var result = [];
+                  for (var i = 0; i < rules.length; i++) {
+                      if (rules[i].id === null || typeof rules[i].id === 'undefined') {
+                          continue;
+                      }
+
+                      var proto = rules[i].ip_proto || '';
+                      var start = rules[i].wan_port_start || '';
+                      var end = rules[i].wan_port_end || '';
+                      var port = String(start);
+                      if (end && String(end) !== String(start)) {
+                          port += '-' + end;
+                      }
+
+                      var target = (rules[i].lan_ip || '') + ':' + (rules[i].lan_port || '');
+                      var detail = proto + '/' + port + ' -> ' + target;
+                      var comment = rules[i].comment || '';
+                      result.push({
+                          id: String(rules[i].id),
+                          name: comment ? comment + ' (' + detail + ')' : detail
+                      });
+                  }
+                  return JSON.stringify(result);
+        - uuid: ac8c1d42e2e840b4981f49bd027dd584
+          name: 'DMZ discovery'
+          type: DEPENDENT
+          key: fw.dmz.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 791eefa49dd447f18e22947b8c1f2f16
+              name: 'DMZ {#DMZ_IP}: abilitata'
+              type: DEPENDENT
+              key: 'fw.dmz.discovery.enabled["{#DMZ_ID}"]'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var data = JSON.parse(value);
+                      var dmz = data.result || {};
+                      return dmz.enabled === true ? 1 : 0;
+              master_item:
+                key: fw.dmz.js
+          master_item:
+            key: fw.dmz.js
+          lld_macro_paths:
+            - lld_macro: '{#DMZ_ID}'
+              path: $.id
+            - lld_macro: '{#DMZ_IP}'
+              path: $.ip
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value);
+                  var dmz = data.result;
+                  if (!dmz || typeof dmz !== 'object') {
+                      return '[]';
+                  }
+
+                  var ip = dmz.ip || '';
+                  if (!ip && dmz.enabled !== true) {
+                      return '[]';
+                  }
+
+                  return JSON.stringify([{
+                      id: 'dmz',
+                      ip: ip || 'non impostato'
+                  }]);
         - uuid: 1d2fd8b7319145bda97beffe57ab4ee7
           name: 'Switch ports discovery'
           type: DEPENDENT

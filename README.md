@@ -10,6 +10,7 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 - LAN: numero host totali, attivi e raggiungibili.
 - Switch: discovery porte Ethernet con link, velocita', duplex e numero MAC collegati.
 - Wi-Fi: stato globale, power saving, MAC filter, discovery BSS con stato, client associati/autorizzati, cifratura e WPS.
+- Firewall/NAT: discovery regole port forwarding con stato abilitato/disabilitato e discovery DMZ configurata con stato abilitato/disabilitato.
 - DHCP, UPnP IGD, DMZ e Samba: stato dei servizi e trigger informativi/di sicurezza.
 - Dashboard e grafici: overview con pagine Connessione, Sistema e Rete locale, piu' graph prototype per sensori, ventole, porte switch e BSS Wi-Fi.
 
@@ -93,6 +94,8 @@ L'item master `GUI Session Cookie` e' di tipo `SCRIPT` e contiene tutto il JavaS
 
 ## Gestione Port Forwarding
 
+I template scoprono automaticamente le regole di port forwarding tramite `/api/v8/fw/redir/` e creano un item per ogni regola con valore `1` se abilitata e `0` se disabilitata. La discovery usa il commento della regola, se presente, piu' protocollo, porta WAN e destinazione LAN per rendere identificabile ogni regola.
+
 Lo script `toggle-port-forwarding-iliadbox.py` permette di attivare o disattivare una regola di port forwarding gia' presente sulla IliadBox.
 
 Esecuzione interattiva:
@@ -115,6 +118,10 @@ python3 toggle-port-forwarding-iliadbox.py --router 192.168.1.254 --rule 'test a
 ```
 
 La password viene sempre richiesta in modo nascosto. Lo script usa il login della web UI (`/api/latest/login/`) e l'endpoint `/api/latest/fw/redir/`; non usa app token e non salva password o token su disco. La regola viene cercata nel campo commento/nome mostrato nella gestione porte; se piu' regole hanno lo stesso nome, usare l'ID numerico indicato dallo script.
+
+## Discovery DMZ
+
+I template mantengono gli item globali `fw.dmz.enabled` e `fw.dmz.ip` e aggiungono una discovery `fw.dmz.discovery`: se una DMZ e' configurata, viene creato un item dedicato che vale `1` quando la DMZ e' abilitata e `0` quando e' disabilitata.
 
 ## Dashboard E Grafici
 
