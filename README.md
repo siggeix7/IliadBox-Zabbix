@@ -18,6 +18,7 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 - `Iliad Template Zabbix.yaml`: template Zabbix 7.2 da importare.
 - `session-token-iliadbox.py`: external check usato dal template per generare un session token.
 - `app-token-gen-and-session-token.sh`: utility per registrare l'app sul box e ottenere l'app token.
+- `toggle-port-forwarding-iliadbox.py`: utility interattiva per attivare o disattivare una regola di port forwarding via web UI.
 
 ## Requisiti
 
@@ -77,6 +78,31 @@ ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<
 3. Associare il template `IliadBox` all'host.
 4. Configurare le macro sull'host, se diverse dai default.
 
+## Gestione Port Forwarding
+
+Lo script `toggle-port-forwarding-iliadbox.py` permette di attivare o disattivare una regola di port forwarding gia' presente sulla IliadBox.
+
+Esecuzione interattiva:
+
+```bash
+python3 toggle-port-forwarding-iliadbox.py
+```
+
+Lo script chiede:
+
+- URL o IP del router, ad esempio `192.168.1.254`.
+- Password web della IliadBox.
+- Nome/commento della regola oppure ID numerico.
+- Azione: `attiva` o `disattiva`.
+
+Esecuzione con alcuni parametri gia' impostati:
+
+```bash
+python3 toggle-port-forwarding-iliadbox.py --router 192.168.1.254 --rule 'test abilitazione' --action attiva
+```
+
+La password viene sempre richiesta in modo nascosto. Lo script usa il login della web UI (`/api/latest/login/`) e l'endpoint `/api/latest/fw/redir/`; non usa app token e non salva password o token su disco. La regola viene cercata nel campo commento/nome mostrato nella gestione porte; se piu' regole hanno lo stesso nome, usare l'ID numerico indicato dallo script.
+
 ## Dashboard E Grafici
 
 - Dashboard template `IliadBox Overview` con le pagine `Connessione`, `Sistema` e `Rete locale`.
@@ -116,6 +142,7 @@ Se il login riesce, il comando stampa solo il session token. Gli errori sono scr
 ## Note Di Sicurezza
 
 - Non inserire app token o session token nel repository.
+- Non salvare la password web della IliadBox in script, shell history o file di configurazione.
 - Preferire macro host di tipo secret per `{$APPTOKEN}`.
 - Limitare l'accesso agli external script ai soli utenti di sistema necessari.
 - Il master item `wifi.bss.js` rimuove le chiavi Wi-Fi (`key`) dalla risposta prima di restituire il JSON a Zabbix.
