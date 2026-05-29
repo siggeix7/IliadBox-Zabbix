@@ -15,15 +15,16 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 
 ## Contenuto
 
-- `Iliad Template Zabbix.yaml`: template Zabbix 7.2 da importare.
-- `session-token-iliadbox.py`: external check usato dal template per generare un session token.
+- `Iliad Template Zabbix.yaml`: template Zabbix 7.2 basato su app token.
+- `Iliad Template Zabbix GUI Password.yaml`: template Zabbix 7.2 alternativo, senza external script, basato sulla password della GUI web e sugli item JavaScript di Zabbix.
+- `session-token-iliadbox.py`: external check usato dal template app token per generare un session token.
 - `app-token-gen-and-session-token.sh`: utility per registrare l'app sul box e ottenere l'app token.
 - `toggle-port-forwarding-iliadbox.py`: utility interattiva per attivare o disattivare una regola di port forwarding via web UI.
 
 ## Requisiti
 
 - Zabbix 7.2 o compatibile con template export 7.2.
-- Python 3 sul server o proxy Zabbix che esegue gli external check.
+- Python 3 sul server o proxy Zabbix solo per il template app token e per gli script utility.
 - `curl`, `jq` e `openssl` solo per lo script di generazione dell'app token.
 - Accesso HTTP dal server/proxy Zabbix verso la IliadBox/Freebox. HTTPS e' supportato impostando `{$FREEBOX_PROTOCOL}=https`, ma richiede certificati Freebox attendibili per il server/proxy Zabbix.
 
@@ -51,9 +52,9 @@ FREEBOX_IP=192.168.1.254 ./app-token-gen-and-session-token.sh
 
 Durante l'esecuzione confermare l'autorizzazione dal display o dall'interfaccia del box. Conservare l'`App token`: andra' inserito nella macro `{$APPTOKEN}` del template o dell'host.
 
-## Installazione External Check
+## Installazione External Check App Token
 
-Installare lo script Python nella directory `ExternalScripts` del server/proxy Zabbix, ad esempio:
+Il template `IliadBox` basato su app token richiede lo script Python nella directory `ExternalScripts` del server/proxy Zabbix:
 
 ```bash
 sudo install -m 0755 session-token-iliadbox.py /usr/lib/zabbix/externalscripts/
@@ -77,6 +78,18 @@ ILIADBOX_TIMEOUT=20 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<
 2. Creare o selezionare l'host della IliadBox/Freebox.
 3. Associare il template `IliadBox` all'host.
 4. Configurare le macro sull'host, se diverse dai default.
+
+## Template Con Password GUI
+
+Il file `Iliad Template Zabbix GUI Password.yaml` e' un template alternativo che evita la generazione dell'app token e non richiede external script. Usa un item `SCRIPT` JavaScript di Zabbix per fare login con la password della GUI web, ottenere un cookie temporaneo `FREEBOXOS` e passarlo agli item dipendenti.
+
+Installazione rapida:
+
+1. Importare `Iliad Template Zabbix GUI Password.yaml` in Zabbix.
+2. Associare il template `IliadBox GUI Password` all'host della IliadBox.
+3. Configurare la macro secret `{$GUI_PASSWORD}` con la password web del router.
+
+L'item master `GUI Session Cookie` e' di tipo `SCRIPT` e contiene tutto il JavaScript necessario per il login GUI; non serve installare file in `ExternalScripts`.
 
 ## Gestione Port Forwarding
 
@@ -109,13 +122,24 @@ La password viene sempre richiesta in modo nascosto. Lo script usa il login dell
 - Grafici classici per traffico WAN, banda disponibile, traffico totale, potenza SFP FTTH, temperature, ventola e host LAN.
 - Graph prototype per temperature sensori, velocita ventole, stato porte switch e client BSS Wi-Fi generati dalle discovery rule.
 
-## Macro
+## Macro Template App Token
 
 | Macro | Default | Descrizione |
 | --- | --- | --- |
 | `{$APPTOKEN}` | vuoto | App token generato con `app-token-gen-and-session-token.sh`. |
 | `{$APP_ID}` | `zabbix.monitoring` | Deve coincidere con l'App ID usato per generare l'app token. |
 | `{$APIVER}` | `v8` | Versione API usata per login e session token. |
+| `{$FREEBOXIP}` | `192.168.1.254` | IP o hostname locale del box, senza protocollo. |
+| `{$FREEBOX_PROTOCOL}` | `http` | Protocollo usato da external check e item JavaScript. Usare `https` solo se la CA Freebox e' trusted da Zabbix. |
+| `{$TEMP_WARN}` | `70` | Soglia warning temperatura sensori in gradi Celsius. |
+| `{$TEMP_HIGH}` | `80` | Soglia high temperatura sensori in gradi Celsius. |
+| `{$FAN_SPEED_MIN}` | `500` | Soglia minima ventola in rpm, valutata dopo 10 minuti di uptime. |
+
+## Macro Template Password GUI
+
+| Macro | Default | Descrizione |
+| --- | --- | --- |
+| `{$GUI_PASSWORD}` | vuoto | Password della GUI web IliadBox. Usare una macro host di tipo secret. |
 | `{$FREEBOXIP}` | `192.168.1.254` | IP o hostname locale del box, senza protocollo. |
 | `{$FREEBOX_PROTOCOL}` | `http` | Protocollo usato da external check e item JavaScript. Usare `https` solo se la CA Freebox e' trusted da Zabbix. |
 | `{$TEMP_WARN}` | `70` | Soglia warning temperatura sensori in gradi Celsius. |
@@ -131,7 +155,7 @@ La password viene sempre richiesta in modo nascosto. Lo script usa il login dell
 
 ## Verifica Rapida
 
-Test manuale dello script external check:
+Test template app token (external check):
 
 ```bash
 /usr/lib/zabbix/externalscripts/session-token-iliadbox.py '<APP_TOKEN>' 192.168.1.254 v8 zabbix.monitoring http
@@ -139,11 +163,27 @@ Test manuale dello script external check:
 
 Se il login riesce, il comando stampa solo il session token. Gli errori sono scritti su `stderr`, cosi' l'item Zabbix non riceve testo non valido al posto del token.
 
+Test template password GUI (item SCRIPT JavaScript):
+
+```bash
+echo '{"freeboxip":"192.168.1.254","protocol":"http","password":"'"<PASSWORD_GUI>"'"}' | \
+  zabbix_js -s <(python3 -c "
+import yaml
+with open('Iliad Template Zabbix GUI Password.yaml') as f:
+    data = yaml.safe_load(f)
+for item in data['zabbix_export']['templates'][0]['items']:
+    if item.get('key') == 'iliadbox.gui.session.cookie':
+        print(item['params']); break
+") -i - -t 15
+```
+
+Se il login riesce, l'output e' il solo cookie di sessione. Il JavaScript e' incluso nel template e non richiede pacchetti o file aggiuntivi.
+
 ## Note Di Sicurezza
 
 - Non inserire app token o session token nel repository.
-- Non salvare la password web della IliadBox in script, shell history o file di configurazione.
-- Preferire macro host di tipo secret per `{$APPTOKEN}`.
-- Limitare l'accesso agli external script ai soli utenti di sistema necessari.
+- Non salvare la password web della IliadBox in script, shell history o file di configurazione; usare la macro secret `{$GUI_PASSWORD}`.
+- Preferire macro host di tipo secret per `{$APPTOKEN}` e `{$GUI_PASSWORD}`.
+- Se si usa il template app token, limitare l'accesso agli external script ai soli utenti di sistema necessari.
 - Il master item `wifi.bss.js` rimuove le chiavi Wi-Fi (`key`) dalla risposta prima di restituire il JSON a Zabbix.
 - I master item JSON usano `history=0`; i dati storicizzati sono solo gli item dipendenti necessari al monitoraggio.
