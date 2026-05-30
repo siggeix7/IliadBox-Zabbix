@@ -98,6 +98,8 @@ zabbix_export:
           name: 'Adblock abilitato'
           type: DEPENDENT
           key: connection.adblock
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -109,6 +111,8 @@ zabbix_export:
           name: 'API remote access abilitato'
           type: DEPENDENT
           key: connection.api_remote_access
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -120,6 +124,8 @@ zabbix_export:
           name: 'Richiesta nuovi token abilitata'
           type: DEPENDENT
           key: connection.allow_token_request
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -131,6 +137,8 @@ zabbix_export:
           name: 'Accesso remoto HTTP abilitato'
           type: DEPENDENT
           key: connection.remote_access
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -142,6 +150,8 @@ zabbix_export:
           name: 'Password amministratore sicura'
           type: DEPENDENT
           key: connection.secure_password
+          valuemap:
+            name: 'IliadBox: password sicura'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -153,6 +163,8 @@ zabbix_export:
           name: 'Risposta ping WAN abilitata'
           type: DEPENDENT
           key: connection.wan_ping
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -198,6 +210,8 @@ zabbix_export:
           type: DEPENDENT
           key: connection.media
           value_type: TEXT
+          valuemap:
+            name: 'IliadBox: media connessione'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -262,6 +276,8 @@ zabbix_export:
           name: 'FTTH Link'
           type: DEPENDENT
           key: ftth.link
+          valuemap:
+            name: 'IliadBox: link'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -279,6 +295,8 @@ zabbix_export:
           name: 'FTTH SFP presente'
           type: DEPENDENT
           key: ftth.sfp.present
+          valuemap:
+            name: 'IliadBox: presenza'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -296,6 +314,8 @@ zabbix_export:
           name: 'FTTH SFP segnale presente'
           type: DEPENDENT
           key: ftth.sfp.signal
+          valuemap:
+            name: 'IliadBox: presenza'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -529,6 +549,8 @@ zabbix_export:
           type: DEPENDENT
           key: stato.ftth
           value_type: TEXT
+          valuemap:
+            name: 'IliadBox: stato FTTH'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -578,6 +600,8 @@ zabbix_export:
           name: 'Box autenticata sulla rete operatore'
           type: DEPENDENT
           key: system.box_authenticated
+          valuemap:
+            name: 'IliadBox: autenticazione'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -596,6 +620,8 @@ zabbix_export:
           type: DEPENDENT
           key: system.disk_status
           value_type: TEXT
+          valuemap:
+            name: 'IliadBox: stato disco'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -726,6 +752,8 @@ zabbix_export:
           name: 'WiFi abilitato'
           type: DEPENDENT
           key: wifi.enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -738,6 +766,8 @@ zabbix_export:
           type: DEPENDENT
           key: wifi.mac_filter_state
           value_type: TEXT
+          valuemap:
+            name: 'IliadBox: filtro MAC WiFi'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -748,6 +778,8 @@ zabbix_export:
           name: 'WiFi power saving'
           type: DEPENDENT
           key: wifi.power_saving
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -851,6 +883,8 @@ zabbix_export:
           name: 'DHCP abilitato'
           type: DEPENDENT
           key: dhcp.enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -884,6 +918,8 @@ zabbix_export:
           name: 'DHCP sticky assign'
           type: DEPENDENT
           key: dhcp.sticky_assign
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -921,6 +957,8 @@ zabbix_export:
           name: 'UPnP IGD abilitato'
           type: DEPENDENT
           key: upnpigd.enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -984,6 +1022,8 @@ zabbix_export:
           name: 'DMZ abilitata'
           type: DEPENDENT
           key: fw.dmz.enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -1032,6 +1072,8 @@ zabbix_export:
           name: 'Samba file sharing abilitato'
           type: DEPENDENT
           key: netshare.samba.file_share_enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -1043,6 +1085,8 @@ zabbix_export:
           name: 'Samba logon abilitato'
           type: DEPENDENT
           key: netshare.samba.logon_enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -1054,6 +1098,8 @@ zabbix_export:
           name: 'Samba SMBv2 abilitato'
           type: DEPENDENT
           key: netshare.samba.smbv2_enabled
+          valuemap:
+            name: 'IliadBox: abilitato/disabilitato'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -1181,6 +1227,8 @@ zabbix_export:
               name: 'Port forwarding {#FWREDIR_NAME}: abilitato'
               type: DEPENDENT
               key: 'fw.redir.enabled["{#FWREDIR_ID}"]'
+              valuemap:
+                name: 'IliadBox: abilitato/disabilitato'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1242,6 +1290,8 @@ zabbix_export:
               name: 'DMZ {#DMZ_IP}: abilitata'
               type: DEPENDENT
               key: 'fw.dmz.discovery.enabled["{#DMZ_ID}"]'
+              valuemap:
+                name: 'IliadBox: abilitato/disabilitato'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1288,6 +1338,8 @@ zabbix_export:
               type: DEPENDENT
               key: 'switch.port.duplex["{#PORT_ID}"]'
               value_type: TEXT
+              valuemap:
+                name: 'IliadBox: duplex switch'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1307,6 +1359,8 @@ zabbix_export:
               name: 'Switch {#PORT_NAME}: link'
               type: DEPENDENT
               key: 'switch.port.link["{#PORT_ID}"]'
+              valuemap:
+                name: 'IliadBox: link'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1425,6 +1479,8 @@ zabbix_export:
               type: DEPENDENT
               key: 'wifi.bss.encryption["{#BSS_ID}"]'
               value_type: TEXT
+              valuemap:
+                name: 'IliadBox: cifratura WiFi'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1444,6 +1500,8 @@ zabbix_export:
               name: 'WiFi BSS {#BSS_PHY}: abilitato'
               type: DEPENDENT
               key: 'wifi.bss.enabled["{#BSS_ID}"]'
+              valuemap:
+                name: 'IliadBox: abilitato/disabilitato'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1484,6 +1542,8 @@ zabbix_export:
               type: DEPENDENT
               key: 'wifi.bss.state["{#BSS_ID}"]'
               value_type: TEXT
+              valuemap:
+                name: 'IliadBox: stato WiFi BSS'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1503,6 +1563,8 @@ zabbix_export:
               name: 'WiFi BSS {#BSS_PHY}: WPS abilitato'
               type: DEPENDENT
               key: 'wifi.bss.wps_enabled["{#BSS_ID}"]'
+              valuemap:
+                name: 'IliadBox: abilitato/disabilitato'
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -1567,6 +1629,133 @@ zabbix_export:
         - macro: '{$FAN_SPEED_MIN}'
           value: '500'
           description: 'Velocita minima ventola in rpm, valutata dopo 10 minuti di uptime.'
+      valuemaps:
+        - uuid: 08594b4deac44f5d8ada143dc60cda73
+          name: 'IliadBox: abilitato/disabilitato'
+          mappings:
+            - value: '0'
+              newvalue: Disabilitato
+            - value: '1'
+              newvalue: Abilitato
+        - uuid: f84026a7797d40da848b10cc33aba4e5
+          name: 'IliadBox: link'
+          mappings:
+            - value: '0'
+              newvalue: 'Non attivo'
+            - value: '1'
+              newvalue: Attivo
+        - uuid: 81dde4a8a18447f7adc9096f5912f3a2
+          name: 'IliadBox: presenza'
+          mappings:
+            - value: '0'
+              newvalue: Assente
+            - value: '1'
+              newvalue: Presente
+        - uuid: 006d4c45e5b942bba860dbaedbd8b7f5
+          name: 'IliadBox: password sicura'
+          mappings:
+            - value: '0'
+              newvalue: 'Non sicura'
+            - value: '1'
+              newvalue: Sicura
+        - uuid: 24ac263521aa4c0da547594ecc925582
+          name: 'IliadBox: autenticazione'
+          mappings:
+            - value: '0'
+              newvalue: 'Non autenticata'
+            - value: '1'
+              newvalue: Autenticata
+        - uuid: 0a409ae41b3c4eb4b6959bc4e8bc2321
+          name: 'IliadBox: stato FTTH'
+          mappings:
+            - value: up
+              newvalue: Connessa
+            - value: down
+              newvalue: Disconnessa
+            - value: going_up
+              newvalue: Connessione
+            - value: going_down
+              newvalue: Disconnessione
+        - uuid: 77401fe4200041fca5a4ea277f8ee9ab
+          name: 'IliadBox: stato disco'
+          mappings:
+            - value: active
+              newvalue: Attivo
+            - value: standby
+              newvalue: Standby
+            - value: disabled
+              newvalue: Disabilitato
+            - value: absent
+              newvalue: Assente
+            - value: error
+              newvalue: Errore
+            - value: unknown
+              newvalue: Sconosciuto
+        - uuid: b26159d918c24e22b0e52032ebe5e1fe
+          name: 'IliadBox: media connessione'
+          mappings:
+            - value: ftth
+              newvalue: FTTH
+            - value: xdsl
+              newvalue: xDSL
+            - value: ethernet
+              newvalue: Ethernet
+            - value: none
+              newvalue: Nessuna
+            - value: unknown
+              newvalue: Sconosciuta
+        - uuid: 5420ee2ed0c54d7fa47953e59bf508d0
+          name: 'IliadBox: filtro MAC WiFi'
+          mappings:
+            - value: disabled
+              newvalue: Disabilitato
+            - value: whitelist
+              newvalue: 'Solo autorizzati'
+            - value: blacklist
+              newvalue: Bloccati
+        - uuid: 0e4a26eb01934c81a1b500a3c7b1421d
+          name: 'IliadBox: duplex switch'
+          mappings:
+            - value: full
+              newvalue: 'Full duplex'
+            - value: half
+              newvalue: 'Half duplex'
+            - value: unknown
+              newvalue: Sconosciuto
+        - uuid: b3e122e5c2a743488c4926e15fc149be
+          name: 'IliadBox: stato WiFi BSS'
+          mappings:
+            - value: active
+              newvalue: Attivo
+            - value: inactive
+              newvalue: Inattivo
+            - value: disabled
+              newvalue: Disabilitato
+            - value: starting
+              newvalue: Avvio
+            - value: stopping
+              newvalue: Arresto
+        - uuid: e7aea392ac9146cba5fc3329d9327857
+          name: 'IliadBox: cifratura WiFi'
+          mappings:
+            - value: none
+              newvalue: Aperta
+            - value: open
+              newvalue: Aperta
+            - value: wep
+              newvalue: WEP
+            - value: wpa
+              newvalue: WPA
+            - value: wpa2
+              newvalue: WPA2
+            - value: wpa3
+              newvalue: WPA3
+            - value: wpa_psk
+              newvalue: WPA-PSK
+            - value: wpa2_psk
+              newvalue: WPA2-PSK
+            - value: wpa3_sae
+              newvalue: WPA3-SAE
       dashboards:
         - uuid: 57644c932d3547c7949e146a5258a138
           name: 'IliadBox Overview'
