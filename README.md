@@ -16,15 +16,15 @@ Template Zabbix per monitorare una IliadBox/Freebox tramite API Freebox OS.
 
 ## Contenuto
 
-- `Iliad Template Zabbix.yaml`: template Zabbix 7.2 basato su app token.
-- `Iliad Template Zabbix GUI Password.yaml`: template Zabbix 7.2 alternativo, senza external script, basato sulla password della GUI web e sugli item JavaScript di Zabbix.
+- `Iliad Template Zabbix.yaml`: template Zabbix 7.0 basato su app token.
+- `Iliad Template Zabbix GUI Password.yaml`: template Zabbix 7.0 alternativo, senza external script, basato sulla password della GUI web e sugli item JavaScript di Zabbix.
 - `session-token-iliadbox.py`: external check usato dal template app token per generare un session token.
 - `app-token-gen-and-session-token.sh`: utility per registrare l'app sul box e ottenere l'app token.
 - `toggle-port-forwarding-iliadbox.py`: utility interattiva per attivare o disattivare una regola di port forwarding via web UI.
 
 ## Requisiti
 
-- Zabbix 7.2 o compatibile con template export 7.2.
+- Zabbix 7.0 o compatibile con template export 7.0.
 - Python 3 sul server o proxy Zabbix solo per il template app token e per gli script utility.
 - `curl`, `jq` e `openssl` solo per lo script di generazione dell'app token.
 - Accesso HTTP dal server/proxy Zabbix verso la IliadBox/Freebox. HTTPS e' supportato impostando `{$FREEBOX_PROTOCOL}=https`, ma richiede certificati Freebox attendibili per il server/proxy Zabbix.
