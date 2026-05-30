@@ -1,5 +1,5 @@
 zabbix_export:
-  version: '7.2'
+  version: '7.0'
   template_groups:
     - uuid: 6067a7bdc5ca40539c378a0b4895f981
       name: CED
